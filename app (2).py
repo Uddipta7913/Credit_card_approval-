@@ -40,7 +40,7 @@ def train_model(data):
 
     X_train_transformed = ct.fit_transform(X_train)
 
-    model = RandomForestClassifier(n_estimators=200, random_state=42)
+    model = RandomForestClassifier(n_estimators=50, max_depth=10, random_state=42)
     model.fit(X_train_transformed, y_train)
 
     return ct, model
