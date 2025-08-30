@@ -8,6 +8,43 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestClassifier
 import hashlib # Import hashlib to create a consistent color based on card name
 
+# --- Train ColumnTransformer & RandomForest on the dataset ---
+from sklearn.model_selection import train_test_split
+
+
+@st.cache_resource  # cache so it doesn’t retrain every time
+def train_model(data):
+    # Define features and target
+    categorical_cols = ['Bank','Card_Name','Card_Type','Rewards','Audience','Annual_Fee']
+    numeric_cols = ['card_id', 'credit_score_min', 'income_min']
+    target_col = 'Difficulty'   # assuming you labeled this during training
+
+    X = data[categorical_cols + numeric_cols]
+    y = data[target_col]
+
+    # Preprocess: OneHotEncode categorical + pass numeric
+    ct = ColumnTransformer(
+        transformers=[
+            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols),
+            ('num', 'passthrough', numeric_cols)
+        ]
+    )
+
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Fit transformer + model
+    X_train_transformed = ct.fit_transform(X_train)
+    model = RandomForestClassifier(n_estimators=200, random_state=42)
+    model.fit(X_train_transformed, y_train)
+
+    return ct, model
+
+# Load data and train
+df = pd.read_csv("indian_credit_cards_30.csv")
+ct, model = train_model(df)
+
+
 
 # --- Load Data and Model ---
 try:
